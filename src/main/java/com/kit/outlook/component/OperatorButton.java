@@ -5,7 +5,7 @@ import com.kit.outlook.constant.template.Operator;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.MouseEvent;
+
 
 public class OperatorButton extends JButton {
     public OperatorButton(Operator operator){

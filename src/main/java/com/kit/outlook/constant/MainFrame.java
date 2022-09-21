@@ -1,16 +1,13 @@
 package com.kit.outlook.constant;
 
-import com.kit.outlook.component.OperatorButton;
-import com.kit.outlook.component.ValueOrCommandButton;
-import com.kit.outlook.constant.template.Command;
-import com.kit.outlook.constant.template.Operator;
-import com.kit.outlook.constant.template.ValueFriend;
+import com.kit.outlook.component.*;
+import com.kit.outlook.constant.template.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.logging.Logger;
 
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame  {
     private static  final Logger LOGGER = Logger.getLogger("MainFrame");
     public static final CardLayout CARD_LAYOUT = new CardLayout();
     public static final JPanel BOTTOM_PANEL = new JPanel();
@@ -19,9 +16,10 @@ public class MainFrame extends JFrame {
     public MainFrame(){
         if(Constant.isOpen(Feature.IMMEDIATE_USE_AFTER_START)){
             Constant.OPEN_FLAG = true;
-            Constant.RESULT.setText("Waiting");
+            Constant.RESULT.setText(" ");
         }
         setSize(500,600);
+        setJMenuBar(setJMenuBar());
 
         Box box = Box.createVerticalBox();
 
@@ -38,10 +36,9 @@ public class MainFrame extends JFrame {
 
 
         BOTTOM_PANEL.setLayout(CARD_LAYOUT);
-        BOTTOM_PANEL.add(setNormalPanel(),"normal");
-        BOTTOM_PANEL.add(setMorePanel(),"more");
-        BOTTOM_PANEL.add(setPlusPanel(),"plus");
-        BOTTOM_PANEL.add(setSciencePanel(),"science");
+        BOTTOM_PANEL.add(setNormalPanel(), CalType.NORMAL.getType());
+        BOTTOM_PANEL.add(setPlusPanel(), CalType.PLUS.getType());
+        BOTTOM_PANEL.add(setUltraPanel(),CalType.ULTRA.getType());
 
         setTopPanel(-1);
 
@@ -54,9 +51,17 @@ public class MainFrame extends JFrame {
         pack();
 
     }
+    private JMenuBar setJMenuBar(){
+        JMenuBar jMenuBar = new JMenuBar();
+        jMenuBar.setFont(new Font("宋体",-1,16));
+        for (Option value : Option.values()) {
+            jMenuBar.add(new OptionMenu(value));
+        }
+        return jMenuBar;
+    }
 
 
-    private  JPanel setPlusPanel(){
+    private  JPanel setUltraPanel(){
         JPanel jPanel = new JPanel();
         jPanel.setLayout(new GridLayout(6,4));
         // 1
@@ -80,7 +85,7 @@ public class MainFrame extends JFrame {
         return jPanel;
     }
 
-    private JPanel setMorePanel(){
+    private JPanel setPlusPanel(){
         JPanel jPanel = new JPanel();
         jPanel.setLayout(new GridLayout(5,4));
         // 1
@@ -116,50 +121,36 @@ public class MainFrame extends JFrame {
         return jPanel;
     }
 
-    private JPanel setSciencePanel(){
-        JPanel jPanel = new JPanel();
-        jPanel.add(new OperatorButton(Operator.SHIFT));
-        System.out.println("计划开发中....");
-        return jPanel;
-    }
-
 
     public static void setTopPanel(int status){
         int temp = status;
         if(status==-1){
-            if(Constant.isOpen(Feature.USE_MORE_BUTTON_SCIENCE)){
-                CARD_LAYOUT.show(BOTTOM_PANEL,"science");
-                temp = 3;
-            }else if(Constant.isOpen(Feature.USE_MORE_BUTTON_PLUS)){
-                CARD_LAYOUT.show(BOTTOM_PANEL,"plus");
+            if(Constant.isOpen(Feature.USE_ULTRA_TYPE)){
+                CARD_LAYOUT.show(BOTTOM_PANEL,CalType.ULTRA.getType());
                 temp = 2;
-            }else if(Constant.isOpen(Feature.USE_MORE_BUTTON)){
-                CARD_LAYOUT.show(BOTTOM_PANEL,"more");
+            }else if(Constant.isOpen(Feature.USE_PLUS_TYPE)){
+                CARD_LAYOUT.show(BOTTOM_PANEL,CalType.PLUS.getType());
                 temp = 1;
             }else{
-                CARD_LAYOUT.show(BOTTOM_PANEL,"normal");
+                CARD_LAYOUT.show(BOTTOM_PANEL,CalType.NORMAL.getType());
                 temp = 0;
             }
         }else if(status==0){
-            CARD_LAYOUT.show(BOTTOM_PANEL,"normal");
+            CARD_LAYOUT.show(BOTTOM_PANEL,CalType.NORMAL.getType());
         }else if(status==1){
-            CARD_LAYOUT.show(BOTTOM_PANEL,"more");
-        }else if(status==2){
-            CARD_LAYOUT.show(BOTTOM_PANEL,"plus");
+            CARD_LAYOUT.show(BOTTOM_PANEL,CalType.PLUS.getType());
         }else{
-            CARD_LAYOUT.show(BOTTOM_PANEL,"science");
+            CARD_LAYOUT.show(BOTTOM_PANEL,CalType.ULTRA.getType());
         }
 
         if(Constant.isOpen(Feature.CALCULATE_WITH_LOGGING)){
             String str;
             if(temp == 0){
-                str = "Normal";
+                str = CalType.NORMAL.getType();
             }else if(temp == 1){
-                str = "More";
-            }else if(temp == 2){
-                str = "Plus";
+                str = CalType.PLUS.getType();
             }else{
-                str = "Science";
+                str = CalType.ULTRA.getType();
             }
             LOGGER.info("Switch to "+str+" Panel");
         }
@@ -174,7 +165,7 @@ public class MainFrame extends JFrame {
 
     static void setNextPanel(){
         num++;
-        if(num>3){
+        if(num>2){
             num = 0;
         }
         setTopPanel(num);

@@ -61,7 +61,15 @@ public class finalTest {
 
     @Test
     public void test5(){
-        System.out.println(Feature.values().length);
+        System.getProperties().forEach((k,v)->{
+            System.out.println(k+" : "+v);
+        });
+    }
+
+    @Test
+    public void test6(){
+        int i = 0x12-0x11;
+        System.out.println(i);
     }
 
 

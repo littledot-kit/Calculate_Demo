@@ -2,6 +2,7 @@ package com.kit.outlook;
 
 import com.kit.outlook.calculate.DefaultCalculate;
 import com.kit.outlook.calculate.ICalculate;
+import com.kit.outlook.component.GlobalKeyProcessor;
 import com.kit.outlook.constant.MainFrame;
 import com.kit.outlook.constant.Constant;
 import com.kit.outlook.constant.Feature;
@@ -22,6 +23,8 @@ public class Starter {
     public void start(){
         EventQueue.invokeLater(()->{
             MainFrame mainFrame = new MainFrame();
+            KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            manager.addKeyEventPostProcessor(new GlobalKeyProcessor());
             mainFrame.setTitle("一个计算器小demo");
             mainFrame.setLocationRelativeTo(null);
             mainFrame.setResizable(false);
@@ -43,7 +46,7 @@ public class Starter {
     public static void main(String[] args) {
     
         Starter starter = new Starter(null);
-        starter.registry(Feature.USE_MORE_BUTTON_PLUS);
+        starter.registry(Feature.USE_ULTRA_TYPE);
         starter.registry(Feature.IMMEDIATE_USE_AFTER_START);
         starter.registry(Feature.INPUT_NOT_EMPTY);
         starter.start();

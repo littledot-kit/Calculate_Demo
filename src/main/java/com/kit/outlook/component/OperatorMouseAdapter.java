@@ -1,13 +1,12 @@
 package com.kit.outlook.component;
 
 import com.kit.outlook.constant.Constant;
-import com.kit.outlook.constant.ResolveTool;
 import com.kit.outlook.constant.template.Operator;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
+
 
 public class OperatorMouseAdapter extends MouseAdapter {
 
@@ -33,7 +32,7 @@ public class OperatorMouseAdapter extends MouseAdapter {
                 Constant.doNextPanel();
                 break;
             case HISTORY:
-                Constant.doPrevHistory();
+//                Constant.doPrevHistory();
                 break;
             case UNSET:
                 Constant.doSetOrUnset((OperatorButton) e.getSource());

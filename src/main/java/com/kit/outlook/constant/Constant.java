@@ -25,7 +25,8 @@ public class Constant {
 //    static int TotalFeature = 1<<(BITS-1);
     // 历史记录 相关
     private static final int HISTORY_MAX_LIMIT = 50;
-    private static int CURRENT_HISTORY_POSITION = 1;
+    private static int CURRENT_HISTORY_POSITION = 0;
+    private static int CURRENT_MAX_INDEX = -1;
     private static final LinkedList<HistoryEntry> HISTORY = new LinkedList<>();
     // 后追\覆写 模式
     private static boolean INPUT_MODE = false;
@@ -34,8 +35,11 @@ public class Constant {
     private static String EMPTY_STR = " ";
 
 
+
     static {
-        Arrays.fill(featureStatus, false);
+        for (Feature value : Feature.values()) {
+            featureStatus[value.ordinal()] = value.getDefaultOpenStatus();
+        }
     }
 
     // 配置 核心组件
@@ -51,7 +55,7 @@ public class Constant {
         }
         INPUT.setText(EMPTY_STR);
         if(RESULT.getText().equals("请按C键开启")){
-            RESULT.setText("Waiting");
+            RESULT.setText(" ");
         }
 
 
@@ -114,13 +118,15 @@ public class Constant {
             if(INPUT_MODE){
                 OPEN_AFTER_RESULT = true;
             }
-            CURRENT_HISTORY_POSITION = 1;
+            CURRENT_HISTORY_POSITION = 0;
             if(isOpen(Feature.CALCULATE_WITH_LOGGING)){
                 LOGGER.info("Calculate ["+INPUT.getText()+"]"+" To "+result);
             }
             HISTORY.addFirst(new HistoryEntry(INPUT.getText(), result));
+            CURRENT_MAX_INDEX++;
             if(HISTORY.size()> HISTORY_MAX_LIMIT){
                 HistoryEntry entry = HISTORY.removeLast();
+                CURRENT_MAX_INDEX--;
                 if(isOpen(Feature.CALCULATE_WITH_LOGGING)){
                     LOGGER.info("History overflow, delete [ "+entry.expression+" => "+entry.result+" ]");
                 }
@@ -129,14 +135,28 @@ public class Constant {
     }
     public static void doPrevHistory(){
         if (OPEN_FLAG){
-            if(CURRENT_HISTORY_POSITION>=HISTORY.size()){
+            if(CURRENT_HISTORY_POSITION>=CURRENT_MAX_INDEX){
                 return;
             }
+            CURRENT_HISTORY_POSITION++;
             HistoryEntry entry = HISTORY.get(CURRENT_HISTORY_POSITION);
             if(entry !=null){
                 INPUT.setText(entry.expression);
                 RESULT.setText(entry.result);
-                CURRENT_HISTORY_POSITION++;
+            }
+        }
+    }
+    public static void doNextHistory(){
+        if(OPEN_FLAG){
+            if(CURRENT_HISTORY_POSITION<=0){
+                return;
+            }
+            CURRENT_HISTORY_POSITION--;
+            HistoryEntry entry = HISTORY.get(CURRENT_HISTORY_POSITION);
+            if(entry!=null){
+                INPUT.setText(entry.expression);
+                RESULT.setText(entry.result);
+
             }
         }
     }
@@ -164,14 +184,9 @@ public class Constant {
 
     // 配置 功能
     public static void configure(Feature feature,boolean status){
-        int i = feature.ordinal();
         featureStatus[feature.ordinal()] = status;
-        switch (feature){
-            case INPUT_NOT_EMPTY:
-                EMPTY_STR = status? "0":" ";
-                break;
-            default:
-                break;
+        if (feature == Feature.INPUT_NOT_EMPTY) {
+            EMPTY_STR = status ? "0" : " ";
         }
     }
     public static boolean isOpen(Feature feature){
