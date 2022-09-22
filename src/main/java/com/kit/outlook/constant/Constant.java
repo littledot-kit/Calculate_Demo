@@ -11,28 +11,29 @@ import java.util.logging.Logger;
 
 public class Constant {
     static final Logger LOGGER = Logger.getLogger(Constant.class.getName());
+    // 默认填充字符
+    private static final String EMPTY_STR_INPUT = " ";
+    private static final String EMPTY_STR_RESULT = "0";
     // 相关控制的 视图组件
-    public static final JLabel RESULT = new JLabel("请按C键开启");
-    public static final JLabel INPUT = new JLabel(" ");
+    public static final JLabel RESULT = new JLabel(EMPTY_STR_RESULT);
+    public static final JLabel INPUT = new JLabel(EMPTY_STR_INPUT);
+    public static final JLabel MIDDLE = new JLabel(" ");
+    public static final OperatorButton OPERATOR_BUTTON = new OperatorButton(Operator.UNSET);
     // 解析表达式（核心组件，可由用户自行实现，也可使用默认实现）
     private static ICalculate iCalculate;
-    // 开启标志
-    static boolean OPEN_FLAG = false;
-
     // 位运算 相关
     private static final int BITS = Feature.values().length;
     private static final boolean[] featureStatus = new boolean[BITS];
-//    static int TotalFeature = 1<<(BITS-1);
     // 历史记录 相关
     private static final int HISTORY_MAX_LIMIT = 50;
     private static int CURRENT_HISTORY_POSITION = 0;
     private static int CURRENT_MAX_INDEX = -1;
     private static final LinkedList<HistoryEntry> HISTORY = new LinkedList<>();
-    // 后追\覆写 模式
-    private static boolean INPUT_MODE = false;
-    private static boolean OPEN_AFTER_RESULT = false;
-    // 默认填充字符
-    private static String EMPTY_STR = " ";
+
+    private static boolean ACCEPT_RESULT = true;
+    private static boolean CLEAR_RESULT  = false;
+    private static boolean ERROR_RESULT  = false;
+
 
 
 
@@ -47,136 +48,125 @@ public class Constant {
         Constant.iCalculate = calculate;
     }
     // 相关 中间操作
-    public static void doEmptyOrOpen(){
-
-        OPEN_FLAG = true;
-        if(isOpen(Feature.CALCULATE_WITH_LOGGING) && !INPUT.getText().equals(EMPTY_STR)){
+    public static void doEmpty(){
+        MIDDLE.setText(" ");
+        if(isOpen(Feature.CALCULATE_WITH_LOGGING) && !INPUT.getText().equals(EMPTY_STR_INPUT)){
             LOGGER.info("The expression is empty now");
         }
-        INPUT.setText(EMPTY_STR);
-        if(RESULT.getText().equals("请按C键开启")){
-            RESULT.setText(" ");
+        INPUT.setText(EMPTY_STR_INPUT);
+        RESULT.setText(EMPTY_STR_RESULT);
+        if(!CLEAR_RESULT){
+            ACCEPT_RESULT = true;
         }
 
 
     }
     public static void doAddition(char valueOrCommand){
-        if(OPEN_FLAG){
-            if(INPUT_MODE && OPEN_AFTER_RESULT){
-                if(ResolveTool.isNumber(valueOrCommand)){
-                    INPUT.setText(String.valueOf(valueOrCommand));
-                }
-
-                OPEN_AFTER_RESULT = false;
+        MIDDLE.setText(" ");
+        if(ResolveTool.isCommand(valueOrCommand)){
+            if(ERROR_RESULT){
+                RESULT.setText(EMPTY_STR_RESULT);
+                INPUT.setText(EMPTY_STR_INPUT);
+                ERROR_RESULT = false;
             }else{
-                String str = INPUT.getText();
-                if(EMPTY_STR.equals(str)){
-                    if(Constant.isOpen(Feature.INPUT_NOT_EMPTY)){
-                        // "0"
-                        if(ResolveTool.isNumber(valueOrCommand)){
-                            INPUT.setText(String.valueOf(valueOrCommand));
-                        }else{
-                            INPUT.setText(str+valueOrCommand);
-                        }
-                    }else{
-                        // " "
-                        INPUT.setText(String.valueOf(valueOrCommand));
-                    }
-                }else{
-                    if(" ".equals(str)){
-                        INPUT.setText(String.valueOf(valueOrCommand));
-                    }else{
-                        INPUT.setText(str+valueOrCommand);
-                    }
-                }
+                INPUT.setText(RESULT.getText()+valueOrCommand);
+                ACCEPT_RESULT = true;
             }
-            CURRENT_HISTORY_POSITION = 0;
+        }else if(CLEAR_RESULT){
+            INPUT.setText(EMPTY_STR_INPUT);
+            RESULT.setText(String.valueOf(valueOrCommand));
+        }else if(ACCEPT_RESULT){
+            RESULT.setText(String.valueOf(valueOrCommand));
+            ACCEPT_RESULT = false;
+        }else{
+            RESULT.setText(RESULT.getText()+valueOrCommand);
         }
+        CLEAR_RESULT = false;
+        CURRENT_HISTORY_POSITION = 0;
     }
     public static void doDelete(){
-        if(OPEN_FLAG){
-            String str = INPUT.getText();
-            if(str.length()==1){
-                if(!str.equals(EMPTY_STR)){
-                    INPUT.setText(EMPTY_STR);
-                }
-            }else{
-                INPUT.setText(str.substring(0,str.length()-1));
+        MIDDLE.setText(" ");
+        String str = RESULT.getText();
+        if(CLEAR_RESULT){
+            INPUT.setText(EMPTY_STR_INPUT);
+            return;
+        }
+        if(str.length()==1){
+            if(!str.equals(EMPTY_STR_RESULT)){
+                RESULT.setText(EMPTY_STR_RESULT);
             }
+        }else{
+            RESULT.setText(str.substring(0,str.length()-1));
         }
     }
     public static void doFinal(){
-        if(OPEN_FLAG){
-            if(INPUT.getText().equals(" ")) return;
-            String result;
-            if(iCalculate.isHardLevel()){
-                result = iCalculate.hardCalculate(INPUT.getText());
-            }else{
-                result = iCalculate.calculate(ResolveTool.obtainQueue(INPUT.getText()));
-            }
-            RESULT.setText(result);
-            if(INPUT_MODE){
-                OPEN_AFTER_RESULT = true;
-            }
-            CURRENT_HISTORY_POSITION = 0;
+        // TODO:处理多次调用doFinal()的情况
+        if(CLEAR_RESULT){
+            return;
+        }
+        String input_str = INPUT.getText();
+        if(EMPTY_STR_INPUT.equals(input_str)){
+            INPUT.setText(RESULT.getText());
+        }else{
+            INPUT.setText(input_str+RESULT.getText());
+        }
+        MIDDLE.setText("=");
+
+        CLEAR_RESULT = true;
+
+        String result;
+        if(iCalculate.isHardLevel()){
+            result = iCalculate.hardCalculate(INPUT.getText());
+        }else{
+            result = iCalculate.calculate(ResolveTool.obtainQueue(INPUT.getText()));
+        }
+        RESULT.setText(result);
+        // TODO:处理 数据处理异常的情况
+        if(!ParseTool.isNumberString(result)){
+            ERROR_RESULT = true;
+        }
+        CURRENT_HISTORY_POSITION = 0;
+        if(isOpen(Feature.CALCULATE_WITH_LOGGING)){
+            LOGGER.info("Calculate ["+INPUT.getText()+"]"+" To "+result);
+        }
+        HISTORY.addFirst(new HistoryEntry(INPUT.getText(), result));
+        CURRENT_MAX_INDEX++;
+        if(HISTORY.size()> HISTORY_MAX_LIMIT){
+            HistoryEntry entry = HISTORY.removeLast();
+            CURRENT_MAX_INDEX--;
             if(isOpen(Feature.CALCULATE_WITH_LOGGING)){
-                LOGGER.info("Calculate ["+INPUT.getText()+"]"+" To "+result);
-            }
-            HISTORY.addFirst(new HistoryEntry(INPUT.getText(), result));
-            CURRENT_MAX_INDEX++;
-            if(HISTORY.size()> HISTORY_MAX_LIMIT){
-                HistoryEntry entry = HISTORY.removeLast();
-                CURRENT_MAX_INDEX--;
-                if(isOpen(Feature.CALCULATE_WITH_LOGGING)){
-                    LOGGER.info("History overflow, delete [ "+entry.expression+" => "+entry.result+" ]");
-                }
+                LOGGER.info("History overflow, delete [ "+entry.expression+" => "+entry.result+" ]");
             }
         }
     }
+
+
     public static void doPrevHistory(){
-        if (OPEN_FLAG){
-            if(CURRENT_HISTORY_POSITION>=CURRENT_MAX_INDEX){
-                return;
-            }
-            CURRENT_HISTORY_POSITION++;
-            HistoryEntry entry = HISTORY.get(CURRENT_HISTORY_POSITION);
-            if(entry !=null){
-                INPUT.setText(entry.expression);
-                RESULT.setText(entry.result);
-            }
+        if(CURRENT_HISTORY_POSITION>=CURRENT_MAX_INDEX){
+            return;
+        }
+        CURRENT_HISTORY_POSITION++;
+        HistoryEntry entry = HISTORY.get(CURRENT_HISTORY_POSITION);
+        if(entry !=null){
+            INPUT.setText(entry.expression);
+            RESULT.setText(entry.result);
+            MIDDLE.setText("=");
         }
     }
     public static void doNextHistory(){
-        if(OPEN_FLAG){
-            if(CURRENT_HISTORY_POSITION<=0){
-                return;
-            }
-            CURRENT_HISTORY_POSITION--;
-            HistoryEntry entry = HISTORY.get(CURRENT_HISTORY_POSITION);
-            if(entry!=null){
-                INPUT.setText(entry.expression);
-                RESULT.setText(entry.result);
-
-            }
+        if(CURRENT_HISTORY_POSITION<=0){
+            return;
+        }
+        CURRENT_HISTORY_POSITION--;
+        HistoryEntry entry = HISTORY.get(CURRENT_HISTORY_POSITION);
+        if(entry!=null){
+            INPUT.setText(entry.expression);
+            RESULT.setText(entry.result);
+            MIDDLE.setText("=");
         }
     }
     public static void doNothing(){
-        if(OPEN_FLAG){
-            RESULT.setText("还没有想好做森么呢...");
-        }
-    }
-    public static void doSetOrUnset(OperatorButton operatorButton){
-        if(OPEN_FLAG){
-            INPUT_MODE = !INPUT_MODE;
-            if(INPUT_MODE){
-                operatorButton.setText(String.valueOf(Operator.SET.toOperator()));
-            }else{
-                operatorButton.setText(String.valueOf(Operator.UNSET.toOperator()));
-            }
-            if(Constant.isOpen(Feature.CALCULATE_WITH_LOGGING)){
-                LOGGER.info("Toggle Mode to [ "+(INPUT_MODE? "Cover":"Append")+" ]");
-            }
-        }
+        RESULT.setText("还没有想好做森么呢...");
     }
     public static void doNextPanel(){
         MainFrame.setNextPanel();
@@ -185,9 +175,6 @@ public class Constant {
     // 配置 功能
     public static void configure(Feature feature,boolean status){
         featureStatus[feature.ordinal()] = status;
-        if (feature == Feature.INPUT_NOT_EMPTY) {
-            EMPTY_STR = status ? "0" : " ";
-        }
     }
     public static boolean isOpen(Feature feature){
         return featureStatus[feature.ordinal()];

@@ -20,7 +20,7 @@ public class OperatorMouseAdapter extends MouseAdapter {
     public void mouseClicked(MouseEvent e) {
         switch (operator){
             case CLS:
-                Constant.doEmptyOrOpen();
+                Constant.doEmpty();
                 break;
             case EQUAL:
                 Constant.doFinal();
@@ -35,8 +35,6 @@ public class OperatorMouseAdapter extends MouseAdapter {
 //                Constant.doPrevHistory();
                 break;
             case UNSET:
-                Constant.doSetOrUnset((OperatorButton) e.getSource());
-                break;
             default:
                 Constant.doNothing();
 

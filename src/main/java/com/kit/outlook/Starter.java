@@ -2,6 +2,7 @@ package com.kit.outlook;
 
 import com.kit.outlook.calculate.DefaultCalculate;
 import com.kit.outlook.calculate.ICalculate;
+import com.kit.outlook.component.GlobalControlMap;
 import com.kit.outlook.component.GlobalKeyProcessor;
 import com.kit.outlook.constant.MainFrame;
 import com.kit.outlook.constant.Constant;
@@ -47,8 +48,7 @@ public class Starter {
     
         Starter starter = new Starter(null);
         starter.registry(Feature.USE_ULTRA_TYPE);
-        starter.registry(Feature.IMMEDIATE_USE_AFTER_START);
-        starter.registry(Feature.INPUT_NOT_EMPTY);
+//        starter.disable(Feature.CALCULATE_WITH_LOGGING);
         starter.start();
 
     }

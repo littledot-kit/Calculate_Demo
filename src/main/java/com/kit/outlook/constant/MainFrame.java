@@ -11,25 +11,22 @@ public class MainFrame extends JFrame  {
     private static  final Logger LOGGER = Logger.getLogger("MainFrame");
     public static final CardLayout CARD_LAYOUT = new CardLayout();
     public static final JPanel BOTTOM_PANEL = new JPanel();
-    public static int num = 0;
+    private static int CURRENT_NUM = -1;
 
     public MainFrame(){
-        if(Constant.isOpen(Feature.IMMEDIATE_USE_AFTER_START)){
-            Constant.OPEN_FLAG = true;
-            Constant.RESULT.setText(" ");
-        }
+
         setSize(500,600);
         setJMenuBar(setJMenuBar());
 
         Box box = Box.createVerticalBox();
 
-        Constant.INPUT.setFont(new Font("Consolas",Font.BOLD,30));
-        Constant.RESULT.setFont(new Font("黑体",Font.PLAIN,18));
+        Constant.INPUT.setFont(new Font("Consolas",Font.BOLD,18));
+        Constant.RESULT.setFont(new Font("黑体",Font.PLAIN,30));
         Constant.RESULT.setPreferredSize(new Dimension(300,50));
         Constant.INPUT.setPreferredSize(new Dimension(300,50));
 
         box.add(Constant.INPUT);
-        box.add(new JLabel(" "));
+        box.add(Constant.MIDDLE);
         box.add(Constant.RESULT);
         JPanel topPanel = new JPanel();
         topPanel.add(box);
@@ -67,7 +64,7 @@ public class MainFrame extends JFrame  {
         // 1
         jPanel.add(new OperatorButton(Operator.CLS));
         jPanel.add(new OperatorButton(Operator.HISTORY));
-        jPanel.add(new OperatorButton(Operator.UNSET));
+        jPanel.add(Constant.OPERATOR_BUTTON);
         jPanel.add(new OperatorButton(Operator.DEL));
         // 2
         addValueOrCommandButtonsToPanel(jPanel,'7','8','9',Command.ADD);
@@ -123,17 +120,18 @@ public class MainFrame extends JFrame  {
 
 
     public static void setTopPanel(int status){
-        int temp = status;
+        if(CURRENT_NUM==status) return;
+        CURRENT_NUM = status;
         if(status==-1){
             if(Constant.isOpen(Feature.USE_ULTRA_TYPE)){
                 CARD_LAYOUT.show(BOTTOM_PANEL,CalType.ULTRA.getType());
-                temp = 2;
+                CURRENT_NUM = 2;
             }else if(Constant.isOpen(Feature.USE_PLUS_TYPE)){
                 CARD_LAYOUT.show(BOTTOM_PANEL,CalType.PLUS.getType());
-                temp = 1;
+                CURRENT_NUM = 1;
             }else{
                 CARD_LAYOUT.show(BOTTOM_PANEL,CalType.NORMAL.getType());
-                temp = 0;
+                CURRENT_NUM = 0;
             }
         }else if(status==0){
             CARD_LAYOUT.show(BOTTOM_PANEL,CalType.NORMAL.getType());
@@ -145,9 +143,9 @@ public class MainFrame extends JFrame  {
 
         if(Constant.isOpen(Feature.CALCULATE_WITH_LOGGING)){
             String str;
-            if(temp == 0){
+            if(CURRENT_NUM == 0){
                 str = CalType.NORMAL.getType();
-            }else if(temp == 1){
+            }else if(CURRENT_NUM == 1){
                 str = CalType.PLUS.getType();
             }else{
                 str = CalType.ULTRA.getType();
@@ -164,11 +162,10 @@ public class MainFrame extends JFrame  {
     }
 
     static void setNextPanel(){
-        num++;
-        if(num>2){
-            num = 0;
+        if(CURRENT_NUM==2){
+            CURRENT_NUM= -1;
         }
-        setTopPanel(num);
+        setTopPanel(CURRENT_NUM+1);
     }
 
 }

@@ -18,48 +18,6 @@ public class ResolveTool {
 
     private static final ResolveTool RESOLVE_TOOL = new ResolveTool();
 
-    @Deprecated
-    public  Queue<ValueOrCommand> getQueue2(String expression){
-
-        Queue<ValueOrCommand> queue = new LinkedList<>();
-        Deque<Integer> stack = new LinkedList<>();
-        // 是否开启解析负数
-        // 开启场景： -1+2【开始第一个数字】、34+(-2)【中括号里面第一个数字】【后续添加】
-        ResolveNegative resolveNegativeNumber = expression.charAt(0) == Command.SUB ? OPEN: CLOSE;
-
-        for (int i = 0; i < expression.length(); i++) {
-            char c = expression.charAt(i);
-            if(isCommand(c)){
-                if(!stack.isEmpty()){
-                    if(resolveNegativeNumber==OPEN){
-                        queue.add(new ValueOrCommand(-buildNum(stack),null));
-                    }else{
-                        queue.add(new ValueOrCommand(buildNum(stack),null));
-                    }
-                    resolveNegativeNumber = CLOSE;
-                }
-                if(c==Command.SUB){
-                    if(resolveNegativeNumber==OPEN){
-                        continue;
-                    }else if(resolveNegativeNumber==PAUSE){
-                        resolveNegativeNumber=OPEN;
-                        continue;
-                    }
-                }else if(c==Command.LBK){
-                    resolveNegativeNumber = PAUSE;
-                }
-                queue.add(new ValueOrCommand(null,c));
-            }else{
-                stack.offerFirst(c-'0');
-            }
-
-        }
-
-        if(!stack.isEmpty()){
-            queue.add(new ValueOrCommand(buildNum(stack),null));
-        }
-        return queue;
-    }
 
 
     public  Queue<ValueOrCommand> getQueue(String expression){

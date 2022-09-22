@@ -21,8 +21,6 @@ public class ValueOrCommandButton extends JButton {
         this.setBorder(new LineBorder(new Color(230, 230, 230),1));
         this.setFocusPainted(false);
         this.setPreferredSize(new Dimension(80,60));
-
-
     }
 
 }
